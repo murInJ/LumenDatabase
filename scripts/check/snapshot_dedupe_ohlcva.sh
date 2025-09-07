@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
-source "$(dirname "$0")/env.sh"
+source "$(dirname "$0")/../env.sh"
 
 SNAP_ROOT="${1:-data_snapshot_$(date -u +%Y%m%d)}"
 echo "[snapshot] exporting deduped dataset to $SNAP_ROOT"

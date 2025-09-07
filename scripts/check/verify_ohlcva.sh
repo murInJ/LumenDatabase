@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
-source "$(dirname "$0")/env.sh"
+source "$(dirname "$0")/../env.sh"
 
 python - <<'PY'
 import os

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
-source "$(dirname "$0")/env.sh"
+source "$(dirname "$0")/../env.sh"
 
 echo "[clean] remove $LUMEN_DATA_ROOT/ohlcva"
 rm -rf "$LUMEN_DATA_ROOT/ohlcva" || true

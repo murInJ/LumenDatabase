@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
-source "$(dirname "$0")/env.sh"
+source "$(dirname "$0")/../env.sh"
 
 FROM_YEAR="${1:-2010}"
 TO_YEAR="${2:-$(date -u +%Y)}"

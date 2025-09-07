@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
-source "$(dirname "$0")/env.sh"
+source "$(dirname "$0")/../env.sh"
 
 START="${1:-2010-01-01}"
 END="${2:-$(date -u +%F)}"

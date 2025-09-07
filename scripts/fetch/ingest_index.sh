@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
-source "$(dirname "$0")/env.sh"
+source "$(dirname "$0")/../env.sh"
 
 INDEX_CODE="${1:?用法: $0 000300 [START] [END] [MODE]}"
 START="${2:-2010-01-01}"

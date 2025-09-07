@@ -5,6 +5,8 @@ datasource/jobs/ingest_ohlcva.py
 将 A 股 OHLCVA 日线数据从数据源（默认 AKShare）拉取并入湖到 Parquet，
 合并进度为单一总进度条（以 symbol 粒度计数），写文件/累计行数显示在同一进度条的 postfix。
 支持全量/增量/自动三种抓取模式，随后创建/刷新 DuckDB 视图。
+
+修复：统一 tz-naive / tz-aware，避免 TypeError: can't compare offset-naive and offset-aware datetimes
 """
 
 from __future__ import annotations
@@ -17,6 +19,7 @@ from typing import Dict, Iterable, List, Optional, Set
 
 import pandas as pd
 from tqdm.auto import tqdm
+from datetime import timezone  # 统一处理为 UTC-aware
 
 from database.lumen_database import LumenDatabase
 from database.utils import sql_literal
@@ -126,6 +129,8 @@ def latest_trading_day_for_symbol(db: LumenDatabase, data_root: str, symbol: str
     """
     用 DuckDB 在该 symbol 的分区上计算已存在的最大 trading_day。
     若无文件或空表，返回 None。
+
+    返回值统一为 UTC-aware 的 pandas.Timestamp，避免后续比较时报 tz 错误。
     """
     pattern = _glob_for_symbol(data_root, symbol)
     try:
@@ -133,7 +138,12 @@ def latest_trading_day_for_symbol(db: LumenDatabase, data_root: str, symbol: str
         row = db.query(sql)
         if not row or row[0][0] is None:
             return None
-        return pd.to_datetime(row[0][0])
+        ts = pd.to_datetime(row[0][0])
+        if isinstance(ts, pd.Timestamp):
+            ts = ts.tz_localize("UTC") if ts.tz is None else ts.tz_convert("UTC")
+        else:
+            ts = pd.Timestamp(ts, tz="UTC")
+        return ts
     except Exception:
         return None
 
@@ -155,6 +165,19 @@ def build_incremental_groups(
     """
     groups: Dict[pd.Timestamp, List[str]] = defaultdict(list)
 
+    def _to_aware_utc(x) -> dt.datetime:
+        """兜底：把任何 pandas/py 的 datetime 变成 UTC-aware 的 datetime.datetime。"""
+        if isinstance(x, pd.Timestamp):
+            x = x.tz_localize("UTC") if x.tz is None else x.tz_convert("UTC")
+            return x.to_pydatetime()
+        if isinstance(x, dt.datetime):
+            return x if x.tzinfo is not None else x.replace(tzinfo=timezone.utc)
+        return pd.Timestamp(x, tz="UTC").to_pydatetime()
+
+    # 入参也做一次保险（幂等）
+    user_start = _to_aware_utc(user_start)
+    user_end = _to_aware_utc(user_end)
+
     for sym in symbols:
         store_sym = _storage_symbol(sym)
         if mode == "full":
@@ -162,9 +185,12 @@ def build_incremental_groups(
         else:
             last = latest_trading_day_for_symbol(db, data_root, store_sym)
             if mode == "incremental":
-                real_start = user_start if last is None else (pd.Timestamp(last) + pd.Timedelta(days=1)).to_pydatetime()
+                real_start = user_start if last is None else (pd.Timestamp(last) + pd.Timedelta(days=1))
             else:  # auto
-                real_start = user_start if last is None else (pd.Timestamp(last) + pd.Timedelta(days=1)).to_pydatetime()
+                real_start = user_start if last is None else (pd.Timestamp(last) + pd.Timedelta(days=1))
+
+        # 全部统一为 UTC-aware 的 python datetime 再参与后续运算/比较
+        real_start = _to_aware_utc(real_start)
 
         if lookback_days > 0:
             real_start = real_start - dt.timedelta(days=int(lookback_days))

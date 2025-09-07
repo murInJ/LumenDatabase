@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 set -euo pipefail
-source "$(dirname "$0")/env.sh"
+source "$(dirname "$0")/../env.sh"
 
 # 默认跑最近一段窗口；auto: 已有历史→增量；无历史→全量
 START="${1:-$(date -u -d '30 days ago' +%F)}"

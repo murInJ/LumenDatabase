@@ -71,14 +71,17 @@ datasource/
 
 ```
 scripts/
+  fetch/
+    ingest_full_all_a.sh           # 全市场全量
+    ingest_full_yearly.sh          # 按年全量
+    ingest_incremental_universe.sh # 全市场增量/自动（支持回看天数）
+    ingest_index.sh                # 指数成份（全量/增量）
+  check/
+    verify_ohlcva.sh               # 快速验数与时间范围检查
+    clean_ohlcva.sh                # 清理 OHLCVA 分区与 manifest
+    snapshot_dedupe_ohlcva.sh      # 可选：导出“去重后的黄金快照”到新根
   env.sh                         # 通用环境变量（并发、速率、数据根、DB 文件等）
-  ingest_full_all_a.sh           # 全市场全量
-  ingest_full_yearly.sh          # 按年全量
-  ingest_incremental_universe.sh # 全市场增量/自动（支持回看天数）
-  ingest_index.sh                # 指数成份（全量/增量）
-  verify_ohlcva.sh               # 快速验数与时间范围检查
-  clean_ohlcva.sh                # 清理 OHLCVA 分区与 manifest
-  snapshot_dedupe_ohlcva.sh      # 可选：导出“去重后的黄金快照”到新根
+
 ```
 
 ---

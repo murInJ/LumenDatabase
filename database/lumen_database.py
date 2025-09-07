@@ -428,7 +428,7 @@ class LumenDatabase:
 if __name__ == "__main__":
     """
     运行方式（从项目根目录）：
-        export PYTHONPATH="$PWD/src"
+        export PYTHONPATH="$PWD"
         python -m database.lumen_database
     环境变量（可选）：
         LUMEN_DATA_ROOT  覆盖 data_root，默认 'data'
